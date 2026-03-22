@@ -3,20 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vocab Master 500 - Pro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <title>Vocab Master 300+ Pro</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Assistant', sans-serif; background: linear-gradient(135deg, #fdfcfb 0%, #e2d1f9 100%); margin: 0; padding: 0; overflow: hidden; height: 100vh; touch-action: manipulation; }
-        .vocab-card { transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); transform-style: preserve-3d; backface-visibility: hidden; }
+        body { 
+            font-family: 'Assistant', sans-serif; 
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%); 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; 
+            height: 100dvh; 
+            touch-action: manipulation; 
+        }
+        .vocab-card { 
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+            transform-style: preserve-3d; 
+            position: relative;
+        }
         .vocab-card.is-flipped { transform: rotateY(180deg); }
-        .vocab-card-back { transform: rotateY(180deg); backface-visibility: hidden; }
+        .vocab-card-front, .vocab-card-back {
+            backface-visibility: hidden;
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 2.5rem;
+            padding: 1.5rem;
+        }
+        .vocab-card-back { transform: rotateY(180deg); }
         .btn-animate { transition: transform 0.1s; }
-        .btn-animate:active { transform: scale(0.95); }
+        .btn-animate:active { transform: scale(0.92); }
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        @keyframes pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: .6; } }
+        .animate-pulse-soft { animation: pulse-soft 2s infinite; }
     </style>
 </head>
 <body>
@@ -25,7 +55,8 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        const WORD_LIST = [
+        // רשימת מילים אמיתית ומלאה (מעל 300 מילים)
+        const MASTER_WORD_LIST = [
             { word: "Analyze", translation: "לנתח", phonetic: "אֶ-נָ-לַאייז" },
             { word: "Approach", translation: "גישה", phonetic: "אֶ-פְּרוֹ-טְשׁ" },
             { word: "Appropriate", translation: "מתאים", phonetic: "אֶ-פְּרוֹ-פְּרִי-אֵייט" },
@@ -38,28 +69,351 @@
             { word: "Conclusion", translation: "מסקנה", phonetic: "קוֹן-קְלוּ-זֶ'ן" },
             { word: "Significant", translation: "משמעותי", phonetic: "סִיג-נִי-פִי-קֶנְט" },
             { word: "Identify", translation: "לזהות", phonetic: "איי-דֶנ-טִי-פַאיי" },
-            { word: "Establish", translation: "לבסס", phonetic: "אֶ-סְטָ-בְּלִישׁ" },
+            { word: "Maintain", translation: "לתחזק", phonetic: "מֵיין-טֵיין" },
+            { word: "Strategy", translation: "אסטרטגיה", phonetic: "סְטְרָ-טֶ-גִ'י" },
+            { word: "Theory", translation: "תיאוריה", phonetic: "תִ'י-אוֹ-רִי" },
+            { word: "Evidence", translation: "ראיה", phonetic: "אֶ-ווִי-דֶנְס" },
             { word: "Focus", translation: "מיקוד", phonetic: "פוֹ-קוּס" },
-            { word: "Improve", translation: "לשפר", phonetic: "אִים-פְּרוּב" },
-            { word: "Evidence", translation: "הוכחה", phonetic: "אֶ-ווִי-דֶנְס" },
-            { word: "Environment", translation: "סביבה", phonetic: "אֶנ-ווַיי-רוֹ-מֶנְט" },
+            { word: "Achievement", translation: "הישג", phonetic: "אֶ-טְשִׁיב-מֶנְט" },
             { word: "Acquire", translation: "לרכוש", phonetic: "אֶ-קְוַואייר" },
             { word: "Capacity", translation: "יכולת", phonetic: "קָ-פָּ-סִי-טִי" },
-            { word: "Diverse", translation: "מגוון", phonetic: "דַאי-ווֶרְס" },
             { word: "Enhance", translation: "לשפר", phonetic: "אֶנ-הֶנְס" },
-            { word: "Revenue", translation: "הכנסות", phonetic: "רֶ-ווֶ-נְיוּ" },
-            { word: "Academic", translation: "אקדמי", phonetic: "אֶ-קָ-דֶ-מִיק" },
-            { word: "Behavior", translation: "התנהגות", phonetic: "בִּי-הֵיי-ווְיֶר" },
-            { word: "Believe", translation: "להאמין", phonetic: "בִּי-לִיב" },
             { word: "Decision", translation: "החלטה", phonetic: "דִי-סִי-זֶ'ן" },
-            { word: "Explain", translation: "להסביר", phonetic: "אִק-סְפְּלֵיין" },
-            { word: "Knowledge", translation: "ידע", phonetic: "נוֹ-לֶג'" },
-            { word: "Language", translation: "שפה", phonetic: "לֶנ-גְוִו-ג'" },
-            { word: "Professional", translation: "מקצועי", phonetic: "פְּרוֹ-פֶ-שֶׁ-נָל" },
             { word: "Solution", translation: "פתרון", phonetic: "סוֹ-לוּ-שֶׁן" },
-            { word: "Update", translation: "עדכון", phonetic: "אֲפּ-דֵייט" }
-            // הרשימה המלאה של 500 המילים
+            { word: "Professional", translation: "מקצועי", phonetic: "פְּרוֹ-פֶ-שֶׁ-נָל" },
+            { word: "Success", translation: "הצלחה", phonetic: "סַאק-סֶס" },
+            { word: "Challenge", translation: "אתגר", phonetic: "טְשֶׁ-לֶנְג'" },
+            { word: "Abandon", translation: "לנטוש", phonetic: "אֶ-בֶּנ-דוֹן" },
+            { word: "Academic", translation: "אקדמי", phonetic: "אֶ-קָ-דֶ-מִיק" },
+            { word: "Agreement", translation: "הסכם", phonetic: "אֶ-גְרִי-מֶנְט" },
+            { word: "Active", translation: "פעיל", phonetic: "אֶק-טִיב" },
+            { word: "Argue", translation: "להתווכח", phonetic: "אֲר-גְיוּ" },
+            { word: "Balance", translation: "איזון", phonetic: "בֶּ-לֶנְס" },
+            { word: "Budget", translation: "תקציב", phonetic: "בַּא-גֶ'ט" },
+            { word: "Campaign", translation: "קמפיין", phonetic: "קֶמ-פֵּיין" },
+            { word: "Citizen", translation: "אזרח", phonetic: "סִי-טִי-זֶן" },
+            { word: "Climate", translation: "אקלים", phonetic: "קְלַאי-מֶט" },
+            { word: "Conflict", translation: "סכסוך", phonetic: "קוֹן-פְלִיקְט" },
+            { word: "Culture", translation: "תרבות", phonetic: "קַל-טְשֶׁר" },
+            { word: "Economy", translation: "כלכלה", phonetic: "אִי-קוֹ-נוֹ-מִי" },
+            { word: "Global", translation: "עולמי", phonetic: "גְלוֹ-בָּל" },
+            { word: "Impact", translation: "השפעה", phonetic: "אִים-פֶּקְט" },
+            { word: "Initial", translation: "ראשוני", phonetic: "אִ-נִי-שֶׁל" },
+            { word: "Justice", translation: "צדק", phonetic: "גַ'ס-טִיס" },
+            { word: "Majority", translation: "רוב", phonetic: "מָ-ג'וֹ-רִי-טִי" },
+            { word: "Visible", translation: "נראה לעין", phonetic: "ווִי-זִי-בְּל" },
+            { word: "Accept", translation: "לקבל", phonetic: "אֶק-סֶפְּט" },
+            { word: "Advice", translation: "עצה", phonetic: "אֶד-וַאייס" },
+            { word: "Always", translation: "תמיד", phonetic: "אוֹל-וֵוייז" },
+            { word: "Believe", translation: "להאמין", phonetic: "בִּי-לִיב" },
+            { word: "Bright", translation: "בהיר", phonetic: "בְּרַאייְט" },
+            { word: "Business", translation: "עסק", phonetic: "בִּיזְנֶס" },
+            { word: "Camera", translation: "מצלמה", phonetic: "קֶ-מֶ-רָה" },
+            { word: "Change", translation: "שינוי", phonetic: "צֵ'יינְג'" },
+            { word: "Different", translation: "שונה", phonetic: "דִי-פֶ-רֶנְט" },
+            { word: "Education", translation: "חינוך", phonetic: "אֶ-דְיוּ-קֵיישֶן" },
+            { word: "Example", translation: "דוגמה", phonetic: "אִג-זֶמ-פֶּל" },
+            { word: "History", translation: "היסטוריה", phonetic: "הִיס-טוֹ-רִי" },
+            { word: "Language", translation: "שפה", phonetic: "לֶנ-גְוִו-ג'" },
+            { word: "Mountain", translation: "הר", phonetic: "מַאונ-טֶן" },
+            { word: "Network", translation: "רשת", phonetic: "נֶט-ווֹרְק" },
+            { word: "Problem", translation: "בעיה", phonetic: "פְּרוֹבּ-לֶם" },
+            { word: "Worker", translation: "עובד", phonetic: "וֶור-קֶר" },
+            { word: "Yesterday", translation: "אתמול", phonetic: "יֶס-טֶר-דֵיי" },
+            { word: "Freedom", translation: "חופש", phonetic: "פְרִי-דוֹם" },
+            { word: "Imagine", translation: "לדמיין", phonetic: "אִי-מֶ-גִ'ין" },
+            { word: "Popular", translation: "פופולרי", phonetic: "פּוֹ-פְּיוּ-לָר" },
+            { word: "Reality", translation: "מציאות", phonetic: "רִי-אֶ-לִי-טִי" },
+            { word: "Victory", translation: "ניצחון", phonetic: "ווִק-טוֹ-רִי" },
+            { word: "Abundant", translation: "שופע", phonetic: "אֲ-בַּנ-דֶנְט" },
+            { word: "Accurate", translation: "מדויק", phonetic: "אֶ-קְיוּ-רֵייט" },
+            { word: "Advocate", translation: "לתמוך/סנגור", phonetic: "אֶד-ווֹ-קֵייט" },
+            { word: "Awareness", translation: "מודעות", phonetic: "אֲ-וֶו-רֶנֶס" },
+            { word: "Effective", translation: "יעיל", phonetic: "אִ-פֶק-טִיב" },
+            { word: "Flexible", translation: "גמיש", phonetic: "פְלֶק-סִי-בְּל" },
+            { word: "Guarantee", translation: "להבטיח", phonetic: "גֶ-רֶן-טִי" },
+            { word: "Logical", translation: "הגיוני", phonetic: "לוֹ-גִ'י-קָל" },
+            { word: "Negotiate", translation: "לנהל מו''מ", phonetic: "נֶ-גוֹ-שִׁי-אֵייט" },
+            { word: "Perspective", translation: "נקודת מבט", phonetic: "פֶּר-סְפֶּק-טִיב" },
+            { word: "Sustain", translation: "לתחזק", phonetic: "סַס-טֵיין" },
+            { word: "Versatile", translation: "רב-גוני", phonetic: "וֶר-סֶ-טַייל" },
+            { word: "Ability", translation: "יכולת", phonetic: "אֶ-בִּילִ-טִי" },
+            { word: "Absence", translation: "היעדרות", phonetic: "אֶבּ-סֶנְס" },
+            { word: "Account", translation: "חשבון", phonetic: "אֶ-קַאונְט" },
+            { word: "Admire", translation: "להעריץ", phonetic: "אֶד-מַאייר" },
+            { word: "Adopt", translation: "לאמץ", phonetic: "אֶ-דוֹפְּט" },
+            { word: "Adore", translation: "לאהוב מאוד", phonetic: "אֶ-דוֹר" },
+            { word: "Affect", translation: "להשפיע", phonetic: "אֶ-פֶקְט" },
+            { word: "Against", translation: "נגד", phonetic: "אֶ-גֶנְסְט" },
+            { word: "Agency", translation: "סוכנות", phonetic: "אֵי-גֶ'נ-סִי" },
+            { word: "Alert", translation: "דרוך/התראה", phonetic: "אֶ-לֶרְט" },
+            { word: "Amount", translation: "כמות", phonetic: "אֶ-מַאונְט" },
+            { word: "Ancient", translation: "עתיק", phonetic: "אֵינ-שֶׁנְט" },
+            { word: "Anyway", translation: "בכל מקרה", phonetic: "אֶ-נִי-וֵוי" },
+            { word: "Approach", translation: "גישה", phonetic: "אֶ-פְּרוֹ-טְשׁ" },
+            { word: "Archive", translation: "ארכיון", phonetic: "אֲר-קַאייב" },
+            { word: "Artificial", translation: "מלאכותי", phonetic: "אֲר-טִי-פִי-שֶׁל" },
+            { word: "Aspect", translation: "היבט", phonetic: "אֶס-פֶּקְט" },
+            { word: "Assist", translation: "לסייע", phonetic: "אֶ-סִיסְט" },
+            { word: "Assume", translation: "להניח", phonetic: "אֶ-סְיוּם" },
+            { word: "Attach", translation: "לצרף", phonetic: "אֶ-טַאטְשׁ" },
+            { word: "Attitude", translation: "גישה/יחס", phonetic: "אֶ-טִי-טְיוּד" },
+            { word: "Average", translation: "ממוצע", phonetic: "אֶ-ווֶ-רֶג'" },
+            { word: "Awful", translation: "נורא", phonetic: "אוֹ-פוּל" },
+            { word: "Baggage", translation: "מטען", phonetic: "בֶּ-גֶדג'" },
+            { word: "Balance", translation: "איזון", phonetic: "בֶּ-לֶנְס" },
+            { word: "Basic", translation: "בסיסי", phonetic: "בֵּי-סִיק" },
+            { word: "Behavior", translation: "התנהגות", phonetic: "בִּי-הֵיי-ווְיֶר" },
+            { word: "Belong", translation: "שייך", phonetic: "בִּי-לוֹנְג" },
+            { word: "Beside", translation: "ליד", phonetic: "בִּי-סַאייד" },
+            { word: "Beyond", translation: "מעבר", phonetic: "בִּי-יוֹנְד" },
+            { word: "Blessing", translation: "ברכה", phonetic: "בְּלֶ-סִינְג" },
+            { word: "Board", translation: "לוח", phonetic: "בּוֹרְד" },
+            { word: "Bottom", translation: "תחתית", phonetic: "בּוֹ-טוֹם" },
+            { word: "Branch", translation: "ענף/סניף", phonetic: "בְּרֶנְטְשׁ" },
+            { word: "Brief", translation: "קצר", phonetic: "בְּרִיף" },
+            { word: "Bucket", translation: "דלי", phonetic: "בַּא-קֶט" },
+            { word: "Budget", translation: "תקציב", phonetic: "בַּא-גֶ'ט" },
+            { word: "Bulk", translation: "נפח", phonetic: "בַּאלְק" },
+            { word: "Bureau", translation: "לשכה", phonetic: "בְּיוּ-רוֹ" },
+            { word: "Cabin", translation: "בקתה/תא", phonetic: "קֶ-בִּין" },
+            { word: "Calm", translation: "רגוע", phonetic: "קַאם" },
+            { word: "Cancel", translation: "לבטל", phonetic: "קֶן-סֶל" },
+            { word: "Canvas", translation: "בד ציור", phonetic: "קֶן-ווָס" },
+            { word: "Capital", phonetic: "קֶ-פִּי-טָל", translation: "בירה/הון" },
+            { word: "Career", translation: "קריירה", phonetic: "קָ-רִיר" },
+            { word: "Cargo", translation: "מטען", phonetic: "קַאר-גוֹ" },
+            { word: "Cash", translation: "מזומן", phonetic: "קֶשׁ" },
+            { word: "Cause", translation: "סיבה", phonetic: "קוֹז" },
+            { word: "Ceiling", translation: "תקרה", phonetic: "סִיל-ינְג" },
+            { word: "Century", translation: "מאה שנים", phonetic: "סֶנ-טְשׁוּ-רִי" },
+            { word: "Certain", translation: "מסוים", phonetic: "סֶר-טֶן" },
+            { word: "Charge", translation: "לטעון/לחייב", phonetic: "טְשַׁארְדג'" },
+            { word: "Chief", translation: "ראשי", phonetic: "טְשִׁיף" },
+            { word: "Choice", translation: "בחירה", phonetic: "טְשׁוֹיְס" },
+            { word: "Civil", translation: "אזרחי", phonetic: "סִי-ווִיל" },
+            { word: "Claim", translation: "לטעון", phonetic: "קְלֵיים" },
+            { word: "Class", translation: "כיתה/מעמד", phonetic: "קְלַאס" },
+            { word: "Climate", translation: "אקלים", phonetic: "קְלַאי-מֶט" },
+            { word: "Coast", translation: "חוף", phonetic: "קוֹסְט" },
+            { word: "Code", translation: "קוד", phonetic: "קוֹד" },
+            { word: "Collect", translation: "לאסוף", phonetic: "קוֹ-לֶקְט" },
+            { word: "Comfort", translation: "נוחות", phonetic: "קַאם-פוֹרְט" },
+            { word: "Compare", translation: "להשוות", phonetic: "קוֹם-פֶּר" },
+            { word: "Compete", translation: "להתחרות", phonetic: "קוֹם-פִּיט" },
+            { word: "Concern", translation: "דאגה", phonetic: "קוֹן-סֶרְן" },
+            { word: "Conflict", translation: "סכסוך", phonetic: "קוֹן-פְלִיקְט" },
+            { word: "Connect", translation: "לחבר", phonetic: "קוֹ-נֶקְט" },
+            { word: "Control", translation: "שליטה", phonetic: "קוֹן-טְרוֹל" },
+            { word: "Correct", translation: "נכון", phonetic: "קוֹ-רֶקְט" },
+            { word: "Counter", translation: "דלפק", phonetic: "קַאונ-טֶר" },
+            { word: "Country", translation: "מדינה", phonetic: "קַאן-טְרִי" },
+            { word: "Course", translation: "קורס", phonetic: "קוֹרְס" },
+            { word: "Craft", translation: "מלאכה", phonetic: "קְרַאפְט" },
+            { word: "Create", translation: "ליצור", phonetic: "קְרִי-אֵייט" },
+            { word: "Credit", translation: "אשראי", phonetic: "קְרֶ-דִיט" },
+            { word: "Crisis", translation: "משבר", phonetic: "קְרַאי-סִיס" },
+            { word: "Current", translation: "נוכחי", phonetic: "קָ-רֶנְט" },
+            { word: "Custom", translation: "מנהג", phonetic: "קַאס-טוֹם" },
+            { word: "Daily", translation: "יומי", phonetic: "דֵיי-לִי" },
+            { word: "Danger", translation: "סכנה", phonetic: "דֵינ-גֶ'ר" },
+            { word: "Dark", translation: "חשוך", phonetic: "דַארְק" },
+            { word: "Deadline", translation: "דדליין", phonetic: "דֶד-לַאיין" },
+            { word: "Deal", translation: "עסקה", phonetic: "דִיל" },
+            { word: "Decade", translation: "עשור", phonetic: "דֶ-קֵייד" },
+            { word: "Defense", translation: "הגנה", phonetic: "דִי-פֶנְס" },
+            { word: "Degree", translation: "מעלה/תואר", phonetic: "דִי-גְרִי" },
+            { word: "Delay", translation: "עיכוב", phonetic: "דִי-לֵיי" },
+            { word: "Deliver", translation: "למסור", phonetic: "דִי-לִי-ווֶר" },
+            { word: "Demand", translation: "דרישה", phonetic: "דִי-מֶנְד" },
+            { word: "Depend", translation: "תלוי ב-", phonetic: "דִי-פֶּנְד" },
+            { word: "Depth", translation: "עומק", phonetic: "דֶפְּת'" },
+            { word: "Design", translation: "עיצוב", phonetic: "דִי-זַאיין" },
+            { word: "Detail", translation: "פרט", phonetic: "דִי-טֵייל" },
+            { word: "Develop", translation: "לפתח", phonetic: "דִי-ווֶ-לוֹפּ" },
+            { word: "Device", translation: "מכשיר", phonetic: "דִי-וַאייס" },
+            { word: "Diet", translation: "תזונה", phonetic: "דַאי-אֶט" },
+            { word: "Digital", translation: "דיגיטלי", phonetic: "דִי-גִ'י-טָל" },
+            { word: "Direct", translation: "ישיר", phonetic: "דִי-רֶקְט" },
+            { word: "Disease", translation: "מחלה", phonetic: "דִי-זִיז" },
+            { word: "Display", translation: "תצוגה", phonetic: "דִיס-פְּלֵיי" },
+            { word: "District", translation: "מחוז", phonetic: "דִיס-טְרִיקְט" },
+            { word: "Divide", translation: "לחלק", phonetic: "דִי-ווַאייד" },
+            { word: "Document", translation: "מסמך", phonetic: "דוֹ-קְיוּ-מֶנְט" },
+            { word: "Double", translation: "כפול", phonetic: "דַא-בֶּל" },
+            { word: "Draft", translation: "טיוטה", phonetic: "דְרַאפְט" },
+            { word: "Dramatic", translation: "דרמטי", phonetic: "דְרָ-מֶ-טִיק" },
+            { word: "Drive", translation: "לנהוג", phonetic: "דְרַאייב" },
+            { word: "Drug", translation: "תרופה/סם", phonetic: "דְרַאג" },
+            { word: "Duty", translation: "חובה", phonetic: "דְיוּ-טִי" },
+            { word: "Earth", translation: "כדור הארץ", phonetic: "אֶרְת'" },
+            { word: "East", translation: "מזרח", phonetic: "אִיסְט" },
+            { word: "Edge", translation: "קצה", phonetic: "אֶדג'" },
+            { word: "Effort", translation: "מאמץ", phonetic: "אֶ-פוֹרְט" },
+            { word: "Electric", translation: "חשמלי", phonetic: "אִ-לֶק-טְרִיק" },
+            { word: "Element", translation: "אלמנט", phonetic: "אֶ-לֶ-מֶנְט" },
+            { word: "Empty", translation: "ריק", phonetic: "אֶמ-פְּטִי" },
+            { word: "Energy", translation: "אנרגיה", phonetic: "אֶ-נֶר-ג'י" },
+            { word: "Engine", translation: "מנוע", phonetic: "אֶן-גִ'ין" },
+            { word: "Enough", translation: "מספיק", phonetic: "אִ-נַאף" },
+            { word: "Entire", translation: "שלם", phonetic: "אִין-טַאייר" },
+            { word: "Equal", translation: "שווה", phonetic: "אִי-קְווַאל" },
+            { word: "Error", translation: "שגיאה", phonetic: "אֶ-רוֹר" },
+            { word: "Escape", translation: "לברוח", phonetic: "אֶ-סְקֵייפּ" },
+            { word: "Essay", translation: "חיבור/מאמר", phonetic: "אֶ-סֵיי" },
+            { word: "Estate", translation: "אחוזה", phonetic: "אֶ-סְטֵייט" },
+            { word: "Event", translation: "אירוע", phonetic: "אִ-ווֶנְט" },
+            { word: "Exact", translation: "מדויק", phonetic: "אִג-זֶקְט" },
+            { word: "Except", translation: "חוץ מ-", phonetic: "אִק-סֶפְּט" },
+            { word: "Exist", translation: "להתקיים", phonetic: "אִג-זִיסְט" },
+            { word: "Expect", translation: "לצפות", phonetic: "אִק-סְפֶּקְט" },
+            { word: "Expert", translation: "מומחה", phonetic: "אֶק-סְפֶּרְט" },
+            { word: "Export", translation: "ייצוא", phonetic: "אֶק-סְפּוֹרְט" },
+            { word: "Extend", translation: "להאריך", phonetic: "אִק-סְטֶנְד" },
+            { word: "External", translation: "חיצוני", phonetic: "אֶקס-טֶר-נָל" },
+            { word: "Failure", translation: "כישלון", phonetic: "פֵי-לְיֶר" },
+            { word: "False", translation: "שקרי", phonetic: "פוֹלְס" },
+            { word: "Famous", translation: "מפורסם", phonetic: "פֵי-מוּס" },
+            { word: "Fashion", translation: "אופנה", phonetic: "פֶ-שֶׁן" },
+            { word: "Fault", translation: "אשמה/פגם", phonetic: "פוֹלְט" },
+            { word: "Feature", translation: "מאפיין", phonetic: "פִי-טְשֶׁר" },
+            { word: "Federal", translation: "פדרלי", phonetic: "פֶ-דֶ-רָל" },
+            { word: "Field", translation: "שדה/תחום", phonetic: "פִילְד" },
+            { word: "Fight", translation: "להילחם", phonetic: "פַאייְט" },
+            { word: "Finance", translation: "מימון", phonetic: "פַי-נֶנְס" },
+            { word: "Fine", translation: "בסדר/קנס", phonetic: "פַאיין" },
+            { word: "Firm", translation: "חברה/מוצק", phonetic: "פֶרְם" },
+            { word: "Flight", translation: "טיסה", phonetic: "פְלַאייְט" },
+            { word: "Flood", translation: "שיטפון", phonetic: "פְלַאד" },
+            { word: "Force", translation: "כוח", phonetic: "פוֹרְס" },
+            { word: "Foreign", translation: "זר", phonetic: "פוֹ-רֶן" },
+            { word: "Forest", translation: "יער", phonetic: "פוֹ-רֶסְט" },
+            { word: "Formal", translation: "פורמלי", phonetic: "פוֹר-מָל" },
+            { word: "Former", translation: "לשעבר", phonetic: "פוֹר-מֶר" },
+            { word: "Forward", translation: "קדימה", phonetic: "פוֹר-ווַארְד" },
+            { word: "Fresh", translation: "טרי", phonetic: "פְרֶשׁ" },
+            { word: "Front", translation: "חזית", phonetic: "פְרוֹנְט" },
+            { word: "Fruit", translation: "פרי", phonetic: "פְרוּט" },
+            { word: "Fuel", translation: "דלק", phonetic: "פְיוּ-אֶל" },
+            { word: "Gain", translation: "להרוויח", phonetic: "גֵיין" },
+            { word: "Gate", translation: "שער", phonetic: "גֵייט" },
+            { word: "Gender", translation: "מגדר", phonetic: "גֶ'נ-דֶר" },
+            { word: "Gift", translation: "מתנה", phonetic: "גִיפְט" },
+            { word: "Grade", translation: "ציון", phonetic: "גְרֵייד" },
+            { word: "Grand", translation: "גדול/מפואר", phonetic: "גְרֶנְד" },
+            { word: "Growth", translation: "צמיחה", phonetic: "גְרוֹת'" },
+            { word: "Guess", translation: "לנחש", phonetic: "גֶס" },
+            { word: "Guide", translation: "מדריך", phonetic: "גַאייד" },
+            { word: "Habit", translation: "הגל", phonetic: "הֶ-בִּיט" },
+            { word: "Hall", translation: "אולם", phonetic: "הוֹל" },
+            { word: "Handle", translation: "לטפל ב-/ידית", phonetic: "הֶנ-דֶל" },
+            { word: "Health", translation: "בריאות", phonetic: "הֶלְת'" },
+            { word: "Heat", translation: "חום", phonetic: "הִיט" },
+            { word: "Heavy", translation: "כבד", phonetic: "הֶ-ווִי" },
+            { word: "Hide", translation: "להחביא", phonetic: "הַאייד" },
+            { word: "Height", translation: "גובה", phonetic: "הַאייט" },
+            { word: "Hole", translation: "חור", phonetic: "הוֹל" },
+            { word: "Honest", translation: "ישר", phonetic: "אוֹ-נֶסְט" },
+            { word: "Huge", translation: "עצום", phonetic: "הְיוּדג'" },
+            { word: "Human", translation: "אנושי", phonetic: "הְיוּ-מֶן" },
+            { word: "Hurt", translation: "כואב/לפגוע", phonetic: "הֶרְט" },
+            { word: "Ideal", translation: "אידיאלי", phonetic: "איי-דִיל" },
+            { word: "Ignore", translation: "להתעלם", phonetic: "אִיג-נוֹר" },
+            { word: "Illness", translation: "מחלה", phonetic: "אִיל-נֶס" },
+            { word: "Image", translation: "תמונה", phonetic: "אִי-מֶדג'" },
+            { word: "Increase", translation: "להגדיל", phonetic: "אִין-קְרִיס" },
+            { word: "Inside", translation: "בפנים", phonetic: "אִין-סַאייד" },
+            { word: "Install", translation: "להתקין", phonetic: "אִין-סְטוֹל" },
+            { word: "Intend", translation: "להתכוון", phonetic: "אִין-טֶנְד" },
+            { word: "Joint", translation: "משותף/מפרק", phonetic: "ג'וֹיְנְט" },
+            { word: "Journey", translation: "מסע", phonetic: "גֶ'ר-נִי" },
+            { word: "Key", translation: "מפתח/מרכזי", phonetic: "קִי" },
+            { word: "Knife", translation: "סכין", phonetic: "נַאייף" },
+            { word: "Lack", translation: "חוסר", phonetic: "קֶל" },
+            { word: "Large", translation: "גדול", phonetic: "לַארְדג'" },
+            { word: "Later", translation: "מאוחר יותר", phonetic: "לֵי-טֶר" },
+            { word: "Lawyer", translation: "עורך דין", phonetic: "לוֹ-יֶר" },
+            { word: "Legacy", translation: "מורשת", phonetic: "לֶ-גָ-סִי" },
+            { word: "Limit", translation: "גבול", phonetic: "לִי-מִיט" },
+            { word: "Local", translation: "מקומי", phonetic: "לוֹ-קָל" },
+            { word: "Lucky", translation: "בר מזל", phonetic: "לַ-קִי" },
+            { word: "Manage", translation: "לנהל", phonetic: "מֶ-נֶדג'" },
+            { word: "Measure", translation: "למדוד", phonetic: "מֶ-זֶ'ר" },
+            { word: "Mental", translation: "מנטלי", phonetic: "מֶנ-טָל" },
+            { word: "Message", translation: "הודעה", phonetic: "מֶ-סֶדג'" },
+            { word: "Minor", translation: "משני", phonetic: "מַאי-נור" },
+            { word: "Mirror", translation: "מראה", phonetic: "מִי-רוֹר" },
+            { word: "Modern", translation: "מודרני", phonetic: "מוֹ-דֶרְן" },
+            { word: "Nature", translation: "טבע", phonetic: "נֵי-טְשֶׁר" },
+            { word: "Normal", translation: "נורמלי", phonetic: "נוֹר-מָל" },
+            { word: "Ocean", translation: "אוקיינוס", phonetic: "אוֹ-שֶׁן" },
+            { word: "Offer", translation: "הצעה", phonetic: "אוֹ-פֶר" },
+            { word: "Parent", translation: "הורה", phonetic: "פֶּ-רֶנְט" },
+            { word: "Past", translation: "עבר", phonetic: "פֶּסְט" },
+            { word: "Phase", translation: "שלב", phonetic: "פֵייז" },
+            { word: "Piece", translation: "חתיכה", phonetic: "פִּיס" },
+            { word: "Plant", translation: "צמח/מפעל", phonetic: "פְּלֶנְט" },
+            { word: "Point", translation: "נקודה", phonetic: "פּוֹינְט" },
+            { word: "Power", translation: "כוח", phonetic: "פַּא-וֶר" },
+            { word: "Price", translation: "מחיר", phonetic: "פְּרַאייס" },
+            { word: "Public", translation: "ציבורי", phonetic: "פַּא-בְּלִיק" },
+            { word: "Quiet", phonetic: "שקט", phonetic: "קְוַואי-אֶט" },
+            { word: "Ready", translation: "מוכן", phonetic: "רֶ-דִי" },
+            { word: "Region", translation: "אזור", phonetic: "רִי-ג'ֶן" },
+            { word: "Repair", translation: "לתקן", phonetic: "רִי-פֶּר" },
+            { word: "Result", translation: "תוצאה", phonetic: "רִי-זַאלְט" },
+            { word: "Right", translation: "ימין/צודק", phonetic: "רַאייְט" },
+            { word: "Route", translation: "מסלול", phonetic: "רוּט" },
+            { word: "Scene", translation: "סצנה", phonetic: "סִין" },
+            { word: "Search", translation: "חיפוש", phonetic: "סֶרְטְשׁ" },
+            { word: "Sense", translation: "חוש", phonetic: "סֶנְס" },
+            { word: "Shape", translation: "צורה", phonetic: "שֵׁייפּ" },
+            { word: "Short", translation: "קצר", phonetic: "שׁוֹרְט" },
+            { word: "Since", phonetic: "מאז", phonetic: "סִינְס" },
+            { word: "Skill", translation: "מיומנות", phonetic: "סְקִיל" },
+            { word: "Smart", translation: "חכם", phonetic: "סְמַארְט" },
+            { word: "Space", translation: "חלל", phonetic: "סְפֵּייס" },
+            { word: "Spend", translation: "לבזבז/להעביר זמן", phonetic: "סְפֶּנְד" },
+            { word: "Still", translation: "עדיין", phonetic: "סְטִיל" },
+            { word: "Stone", translation: "אבן", phonetic: "סְטוֹן" },
+            { word: "Store", translation: "חנות/לאחסן", phonetic: "סְטוֹר" },
+            { word: "Taste", translation: "טעם", phonetic: "טֵייסט" },
+            { word: "Total", translation: "סך הכל", phonetic: "טוֹ-טָל" },
+            { word: "Trust", translation: "אמון", phonetic: "תְ'רַאסְט" },
+            { word: "Until", translation: "עד ש-", phonetic: "אֲנ-טִיל" },
+            { word: "Value", translation: "ערך", phonetic: "וֶול-יוּ" },
+            { word: "Voice", translation: "קול", phonetic: "ווֹיְס" },
+            { word: "Whole", translation: "שלם", phonetic: "הוֹל" },
+            { word: "Wrong", translation: "טעות", phonetic: "רוֹנְג" }
         ];
+
+        // Shuffle Function
+        const shuffle = (arr) => {
+            const newArr = [...arr];
+            for (let i = newArr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+            }
+            return newArr;
+        };
+
+        // Simple SVG Icon Component
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const paths = {
+                zap: <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor" />,
+                search: <g fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></g>,
+                eye: <g fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></g>,
+                info: <g fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></g>,
+                checkCircle: <g fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></g>,
+                chevronRight: <polyline points="9 18 15 12 9 6" fill="none" stroke="currentColor" strokeWidth="2" />,
+                party: <path d="M5.8 11.3 2 22l10.7-3.8M4 14.8 9.2 10M12.6 19.4 17.4 14.2M17.4 14.2 22 5.8 11.3 2 5.8 11.3" fill="none" stroke="currentColor" strokeWidth="2" />
+            };
+            return (
+                <svg viewBox="0 0 24 24" width={size} height={size} strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    {paths[name]}
+                </svg>
+            );
+        };
 
         function App() {
             const [currentIndex, setCurrentIndex] = useState(0);
@@ -70,15 +424,13 @@
             const [searchTerm, setSearchTerm] = useState("");
 
             useEffect(() => {
-                const saved = JSON.parse(localStorage.getItem('vocab_master_pro_v1') || '[]');
+                const saved = JSON.parse(localStorage.getItem('vocab_master_final_stable') || '[]');
                 setLearnedWords(saved);
-                const remaining = WORD_LIST.filter(w => !saved.includes(w.word));
-                setSessionWords(remaining);
-                if (remaining.length === 0 && WORD_LIST.length > 0) setIsFinished(true);
-                lucide.createIcons();
+                const remaining = MASTER_WORD_LIST.filter(w => !saved.includes(w.word));
+                // Shuffle at start
+                setSessionWords(shuffle(remaining));
+                if (remaining.length === 0 && MASTER_WORD_LIST.length > 0) setIsFinished(true);
             }, []);
-
-            useEffect(() => { lucide.createIcons(); }, [isFlipped, isFinished, sessionWords]);
 
             const filteredWords = useMemo(() => {
                 return sessionWords.filter(w => w.word.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -90,9 +442,10 @@
                 setIsFlipped(false);
                 setTimeout(() => {
                     if (currentIndex < filteredWords.length - 1) {
-                        setCurrentIndex(currentIndex + 1);
+                        setCurrentIndex(prev => prev + 1);
                     } else {
                         setCurrentIndex(0);
+                        setSessionWords(prev => shuffle(prev));
                     }
                 }, 100);
             };
@@ -101,112 +454,116 @@
                 if (!currentWordData) return;
                 const newLearned = [...learnedWords, currentWordData.word];
                 setLearnedWords(newLearned);
-                localStorage.setItem('vocab_master_pro_v1', JSON.stringify(newLearned));
+                localStorage.setItem('vocab_master_final_stable', JSON.stringify(newLearned));
+                
                 const updated = sessionWords.filter(w => w.word !== currentWordData.word);
                 setSessionWords(updated);
                 setIsFlipped(false);
                 if (updated.length === 0) {
                     setIsFinished(true);
-                } else {
-                    if (currentIndex >= updated.length) setCurrentIndex(0);
+                } else if (currentIndex >= updated.length) {
+                    setCurrentIndex(0);
                 }
             };
 
-            // פונקציה חכמה לחישוב גודל הטקסט באנגלית
-            const getWordFontSize = (word) => {
-                if (word.length > 12) return 'text-4xl';
-                if (word.length > 9) return 'text-5xl';
+            const getFontSize = (word = "") => {
+                if (word.length > 14) return 'text-3xl';
+                if (word.length > 11) return 'text-4xl';
+                if (word.length > 8) return 'text-5xl';
                 return 'text-6xl';
             };
 
             if (isFinished) return (
-                <div class="h-full flex items-center justify-center p-6 text-center">
-                    <div class="bg-white/90 backdrop-blur-sm p-12 rounded-3xl card-shadow border border-white">
-                        <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <i data-lucide="party-popper" class="w-12 h-12"></i>
+                <div className="h-full flex items-center justify-center p-6 text-center">
+                    <div className="bg-white/10 backdrop-blur-md p-10 rounded-[2.5rem] border border-white/20 shadow-2xl w-full max-w-sm">
+                        <div className="w-20 h-20 bg-emerald-400 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                            <Icon name="party" size={40} />
                         </div>
-                        <h1 class="text-3xl font-extrabold text-slate-800 mb-2">כל הכבוד!</h1>
-                        <p class="text-slate-600 mb-8">סיימת ללמוד את כל המילים!</p>
-                        <button onClick={() => { localStorage.clear(); window.location.reload(); }} class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold btn-animate">התחל מחדש</button>
+                        <h1 className="text-3xl font-extrabold text-white mb-2">WOW!</h1>
+                        <p className="text-white/80 mb-8 font-medium italic">השלמת את לימוד כל 300 המילים!</p>
+                        <button onClick={() => { localStorage.removeItem('vocab_master_final_stable'); window.location.reload(); }} className="w-full py-4 bg-white text-indigo-700 rounded-2xl font-black btn-animate shadow-xl">התחל מהתחלה</button>
                     </div>
                 </div>
             );
 
             return (
-                <div class="h-full flex flex-col items-center p-4">
-                    {/* Header: קטן יותר, ללא רווח מיותר */}
-                    <div class="w-full max-w-lg flex justify-between items-center mb-3">
-                        <div class="flex items-center gap-2">
-                            <div class="p-1.5 bg-indigo-600 rounded-lg text-white"><i data-lucide="brain-circuit" class="w-5 h-5"></i></div>
-                            <span class="font-extrabold text-lg text-indigo-950 tracking-tight">Vocab Master</span>
+                <div className="h-full flex flex-col items-center p-4">
+                    {/* Header */}
+                    <div className="w-full max-w-lg flex flex-col gap-2 mb-3 shrink-0">
+                        <div className="flex justify-between items-center px-1">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 bg-white/20 rounded-xl text-white glass"><Icon name="zap" size={20} className="text-yellow-300" /></div>
+                                <span className="font-black text-xl text-white tracking-tighter uppercase">Vocab 300+</span>
+                            </div>
+                            <div className="glass text-white px-3 py-1 rounded-full text-xs font-bold border border-white/10">
+                                {learnedWords.length} / {MASTER_WORD_LIST.length}
+                            </div>
                         </div>
-                        <div class="bg-indigo-950 text-white px-3 py-1.5 rounded-full text-xs font-bold">
-                            {learnedWords.length} / {WORD_LIST.length}
+                        <div className="w-full h-1.5 bg-black/10 rounded-full overflow-hidden">
+                            <div className="h-full bg-yellow-400 transition-all duration-700" style={{ width: `${(learnedWords.length / MASTER_WORD_LIST.length) * 100}%` }}></div>
                         </div>
                     </div>
 
-                    {/* פס התקדמות: דק יותר */}
-                    <div class="w-full max-w-lg h-1.5 bg-indigo-100 rounded-full mb-4 overflow-hidden">
-                        <div class="h-full bg-indigo-500" style={{ width: `${(learnedWords.length / WORD_LIST.length) * 100}%` }}></div>
-                    </div>
-
-                    {/* חיפוש: פחות גובה */}
-                    <div class="w-full max-w-lg relative mb-4">
-                        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                    {/* Search */}
+                    <div className="w-full max-w-lg relative mb-3 shrink-0">
+                        <Icon name="search" size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50" />
                         <input 
                             type="text" 
                             placeholder="חפש מילה..." 
-                            class="w-full py-3 px-10 bg-white/70 backdrop-blur-sm rounded-xl outline-none text-base text-right border border-indigo-50 focus:border-indigo-200"
+                            className="w-full py-2.5 px-10 bg-white/10 backdrop-blur-sm rounded-xl outline-none text-base text-right text-white placeholder-white/40 border border-white/20 focus:bg-white/20"
                             value={searchTerm}
                             onChange={(e) => { setSearchTerm(e.target.value); setCurrentIndex(0); }}
                         />
                     </div>
 
-                    {/* כרטיסייה: גמישה (Flex-grow) כדי למלא את המסך בלי לגלול */}
-                    <div class="w-full max-w-lg flex-grow relative perspective-1000">
+                    {/* Card */}
+                    <div className="w-full max-w-lg flex-grow relative perspective-1000 mb-3 h-0">
                         {!currentWordData ? (
-                            <div class="bg-white/90 p-16 rounded-3xl text-center h-full flex items-center justify-center font-bold text-slate-400">לא נמצאו מילים</div>
+                            <div className="bg-white/10 p-10 rounded-[2.5rem] border border-white/20 h-full flex flex-col items-center justify-center text-white/50">
+                                <Icon name="search" size={60} className="mb-4 opacity-20" />
+                                <span className="font-bold">לא נמצאו מילים</span>
+                            </div>
                         ) : (
                             <div 
-                                class={`vocab-card w-full h-full bg-white rounded-3xl card-shadow p-6 flex flex-col items-center justify-center cursor-pointer relative ${isFlipped ? 'is-flipped' : ''}`}
+                                className={`vocab-card w-full h-full cursor-pointer ${isFlipped ? 'is-flipped' : ''}`}
                                 onClick={() => setIsFlipped(!isFlipped)}
                             >
-                                {/* חזית (אנגלית) */}
-                                <div class="vocab-card-front h-full flex flex-col items-center justify-center">
-                                    <span class="absolute top-6 left-6 text-[9px] font-bold text-indigo-200 uppercase tracking-widest">Amehtyst Level</span>
-                                    <h2 class={`font-extrabold text-indigo-950 text-center ${getWordFontSize(currentWordData.word)}`}>
+                                <div className="vocab-card-front bg-white shadow-2xl">
+                                    <span className="absolute top-8 left-1/2 -translate-x-1/2 text-[9px] font-black text-indigo-100 uppercase tracking-[0.4em]">Essential Vocabulary</span>
+                                    <h2 className={`font-black text-slate-800 text-center leading-tight px-6 ${getFontSize(currentWordData.word)}`}>
                                         {currentWordData.word}
                                     </h2>
-                                    <div class="mt-6 flex items-center gap-2 text-indigo-400 animate-pulse-soft">
-                                        <i data-lucide="eye" class="w-6 h-6" strokeWidth={2.5}></i>
-                                        <span class="text-xs font-bold tracking-widest uppercase">לחץ לחשיפה</span>
+                                    <div className="mt-8 flex flex-col items-center gap-2 text-indigo-400 animate-pulse-soft">
+                                        <Icon name="eye" size={40} />
+                                        <span className="text-[10px] font-black tracking-widest uppercase">לחץ לתרגום</span>
                                     </div>
                                 </div>
 
-                                {/* גב (עברית) */}
-                                <div class="vocab-card-back absolute inset-0 h-full w-full bg-indigo-950 rounded-3xl p-6 flex flex-col items-center justify-center text-white">
-                                    <span class="absolute top-6 left-6 text-[9px] font-bold text-indigo-700 uppercase tracking-widest">Amehtyst Level</span>
-                                    <div class="text-center w-full">
-                                        <p class="text-5xl font-extrabold mb-3 text-sky-300">{currentWordData.translation}</p>
-                                        <div class="inline-flex items-center gap-2 bg-indigo-900 px-4 py-2 rounded-xl border border-indigo-800">
-                                            <i data-lucide="info" class="w-4 h-4 text-indigo-400"></i>
-                                            <span class="text-lg font-bold text-indigo-200">{currentWordData.phonetic}</span>
+                                <div className="vocab-card-back bg-slate-900 shadow-2xl overflow-hidden">
+                                    <div className="text-center w-full px-4">
+                                        <p className="text-5xl font-black mb-6 text-yellow-400 drop-shadow-lg">{currentWordData.translation}</p>
+                                        <div className="inline-flex items-center gap-3 bg-white/5 px-6 py-3 rounded-2xl border border-white/10">
+                                            <Icon name="info" size={20} className="text-indigo-400" />
+                                            <span className="text-2xl font-bold tracking-wide text-white">{currentWordData.phonetic}</span>
                                         </div>
+                                    </div>
+                                    <div className="absolute bottom-6 left-0 right-0 text-center opacity-30">
+                                        <span className="text-[10px] font-bold text-white tracking-widest uppercase">Vocab Pro 300</span>
                                     </div>
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    {/* כפתורי שליטה: צמודים לתחתית ומאוחדים למראה נקי */}
-                    <div class="w-full max-w-lg mt-4 grid grid-cols-5 gap-3">
-                        <button onClick={(e) => {e.stopPropagation(); handleMarkAsLearned();}} disabled={!currentWordData} class="col-span-2 py-4 bg-white text-emerald-600 rounded-xl font-bold text-base shadow active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 border border-emerald-50">
-                            <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    {/* Footer Buttons */}
+                    <div className="w-full max-w-lg grid grid-cols-5 gap-3 h-16 shrink-0 mb-1">
+                        <button onClick={(e) => {e.stopPropagation(); handleMarkAsLearned();}} disabled={!currentWordData} className="col-span-2 bg-emerald-500 text-white rounded-2xl font-black text-base shadow-lg btn-animate flex items-center justify-center gap-2 disabled:opacity-30 border-b-4 border-emerald-700">
+                            <Icon name="checkCircle" size={24} />
                             יודע
                         </button>
-                        <button onClick={(e) => {e.stopPropagation(); handleNext();}} disabled={!currentWordData} class="col-span-3 py-4 bg-indigo-600 text-white rounded-xl font-bold text-base shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-                            מילה הבאה
-                            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                        <button onClick={(e) => {e.stopPropagation(); handleNext();}} disabled={!currentWordData} className="col-span-3 bg-indigo-500 text-white rounded-2xl font-black text-lg shadow-lg btn-animate flex items-center justify-center gap-2 disabled:opacity-30 border-b-4 border-indigo-700">
+                            הבא
+                            <Icon name="chevronRight" size={24} />
                         </button>
                     </div>
                 </div>
